@@ -27,7 +27,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "config.urls"
 TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",
     "DIRS": [],
@@ -38,9 +37,9 @@ TEMPLATES = [{
         "django.contrib.messages.context_processors.messages",
     ]},
 }]
-WSGI_APPLICATION = "config.wsgi.application"
-ASGI_APPLICATION = "config.asgi.application"
-
+ROOT_URLCONF = "shikshak_mitra.urls"
+WSGI_APPLICATION = "shikshak_mitra.wsgi.application"
+ASGI_APPLICATION = "shikshak_mitra.asgi.application"
 # SQLite is a genuine SQL database for the single-teacher / demo deployment.
 # Set DATABASE_URL and install psycopg[binary] for PostgreSQL in production.
 DATABASES = {"default": {
@@ -57,7 +56,6 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "academy" / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Add values in your deployment environment to turn on real Google OAuth.
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")

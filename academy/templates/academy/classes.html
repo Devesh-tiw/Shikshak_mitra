@@ -2,25 +2,18 @@
 {% block title %}Classes · Shikshak Mitra{% endblock %}
 {% block content %}
 <div class="page-heading">
-    <div>
-        <p class="eyebrow">Classroom register</p>
-        <h1>Your classes</h1>
-        <p>Every section, student roster and register in one place.</p>
-    </div>
-    <a class="btn btn-primary" href="{% url 'create_class' %}">+ Add class</a>
+  <div><p class="eyebrow">Classroom register</p><h1>Your classes</h1><p>Every section, student roster and register in one place.</p></div>
+  <a class="btn btn-primary" href="{% url 'create_class' %}">+ Add class</a>
 </div>
 <div class="class-cards">
-    {% for item in cards %}
-    <a class="class-card" href="{% url 'class_detail' item.course_class.id %}"style="--accent:{{ item.course_class.colour }};--tint:#f1eeff">
-        <div class="class-card-top"><span class="branch-badge">{{ item.course_class.branch }} · {{
-                item.course_class.batch_year }}</span><span class="three-dots">•••</span></div>
-        <h2>{{ item.course_class.name }}</h2>
-        <p>Section {{ item.course_class.section }} · {{ item.stats.students }} students</p>
-        <div class="class-card-footer"><span>{{ item.stats.sessions }} classes taken</span><strong>{{
-                item.stats.overall_rate }}% ↗</strong></div>
-    </a>
-    {% endfor %}
-    <a class="class-card empty-card" href="{% url 'create_class' %}"><span class="plus">+</span><strong>New
-            class</strong><span>Set up a section in a minute</span></a>
+  {% for item in cards %}
+  <a class="class-card" href="{% url 'class_detail' item.course_class.id %}" style="--accent:{{ item.course_class.colour }};--tint:#f1eeff">
+    <div class="class-card-top"><span class="branch-badge">{{ item.course_class.branch }} · {{ item.course_class.batch_year }}</span><span class="three-dots">•••</span></div>
+    <h2>{{ item.course_class.name }}</h2>
+    <p>Section {{ item.course_class.section }} · {{ item.stats.students }} students</p>
+    <div class="class-card-footer"><span>{{ item.stats.sessions }} classes taken</span><strong>{{ item.stats.overall_rate }}% ↗</strong></div>
+  </a>
+  {% endfor %}
+  <a class="class-card empty-card" href="{% url 'create_class' %}"><span class="plus">+</span><strong>New class</strong><span>Set up a section in a minute</span></a>
 </div>
 {% endblock %}

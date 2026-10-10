@@ -1,80 +1,42 @@
 {% extends 'academy/base.html' %}
-{% block title %}Set up class · Shikshak Mitra{% endblock %}
+{% block title %}Create class · Shikshak Mitra{% endblock %}
 {% block content %}
 <div class="page-heading">
-    <div>
-        <p class="eyebrow">One-time setup</p>
-        <h1>Create a class</h1>
-        <p>Tell us the programme, batch and section once. We’ll prepare the roll-number register for you.</p>
-    </div>
+  <div><p class="eyebrow">Class setup</p><h1>Create a class</h1><p>Add only the details needed to begin taking attendance.</p></div>
 </div>
-<div class="form-layout">
-    <form class="panel form-panel" method="post" id="class-form">{% csrf_token %}
-        <section class="form-section">
-            <h2>Class identity</h2>
-            <p>Use any friendly class name — students only see their roster details.</p>
-            <div class="field-grid">
-                <div class="field full"><label for="{{ form.name.id_for_label }}">Class name</label>{{ form.name }}{{
-                    form.name.errors }}</div>
-                <div class="field"><label for="{{ form.branch.id_for_label }}">Programme / branch</label>{{ form.branch
-                    }}{{ form.branch.errors }}</div>
-                <div class="field"><label for="{{ form.batch_year.id_for_label }}">Admission batch</label>{{
-                    form.batch_year }}{{ form.batch_year.errors }}</div>
-                <div class="field"><label for="{{ form.section.id_for_label }}">Section</label>{{ form.section }}</div>
-                <div class="field"><label for="{{ form.student_count.id_for_label }}">Number of students</label>{{
-                    form.student_count }}{{ form.student_count.errors }}</div>
-            </div>
-        </section>
-        <section class="form-section">
-            <h2>Choose a class colour</h2>
-            <p>A small visual cue makes it easier to choose the right register quickly.</p>
-            {{ form.colour }}
-            <div class="swatches" aria-label="Class colour">
-                <button class="swatch active" type="button" data-colour="#7357F6" style="background:#7357F6"
-                    aria-label="Purple"></button>
-                <button class="swatch" type="button" data-colour="#0D9E8B" style="background:#0D9E8B"
-                    aria-label="Teal"></button>
-                <button class="swatch" type="button" data-colour="#EA786A" style="background:#EA786A"
-                    aria-label="Coral"></button>
-                <button class="swatch" type="button" data-colour="#E3A72D" style="background:#E3A72D"
-                    aria-label="Amber"></button>
-                <button class="swatch" type="button" data-colour="#3E82C8" style="background:#3E82C8"
-                    aria-label="Blue"></button>
-            </div>
-        </section>
-        <button class="btn btn-primary" type="submit">Create class & roster <svg viewBox="0 0 24 24">
-                <path d="M5 12h14m-6-6 6 6-6 6" />
-            </svg></button>
-    </form>
-    <aside class="side-note">
-        <div class="roll-preview">
-            <p class="eyebrow">Roll number preview</p><code id="roll-preview">AV.SC.U4CSE25001</code>
-            <p id="roll-explainer">CSE · 2025 batch · Section A · Student 01</p>
-        </div>
-        <div class="panel" style="margin-top:13px">
-            <h3>How the roster works</h3>
-            <ol>
-                <li>Choose the branch, batch, section and class size.</li>
-                <li>We create numbered placeholders so attendance can begin immediately.</li>
-                <li>Replace “Student 1” with names at your pace.</li>
-            </ol>
-            <p><b>Format:</b> school prefix + branch + batch + section position + student number. A is 0, B is 1, C is
-                2.</p>
-        </div>
-    </aside>
+<div class="form-layout simple-form-layout">
+  <form class="panel form-panel" method="post" id="class-form">{% csrf_token %}
+    <section class="form-section"><h2>Class details</h2><p>You can add student names after the class is created.</p>
+      <div class="field-grid">
+        <div class="field full"><label for="{{ form.name.id_for_label }}">Class name</label>{{ form.name }}{{ form.name.errors }}</div>
+        <div class="field"><label for="{{ form.branch.id_for_label }}">Programme / branch</label>{{ form.branch }}{{ form.branch.errors }}</div>
+        <div class="field"><label for="{{ form.batch_year.id_for_label }}">Admission batch</label>{{ form.batch_year }}{{ form.batch_year.errors }}</div>
+        <div class="field"><label for="{{ form.section.id_for_label }}">Section</label>{{ form.section }}</div>
+        <div class="field"><label for="{{ form.student_count.id_for_label }}">Number of students</label>{{ form.student_count }}{{ form.student_count.errors }}</div>
+      </div>
+    </section>
+    <section class="form-section"><h2>Class colour</h2><p>Choose one simple label colour for this class.</p>
+      {{ form.colour }}
+      <div class="swatches" aria-label="Class colour">
+        <button class="swatch active" type="button" data-colour="#2563EB" style="background:#2563EB" aria-label="Blue"></button>
+        <button class="swatch" type="button" data-colour="#0F766E" style="background:#0F766E" aria-label="Teal"></button>
+        <button class="swatch" type="button" data-colour="#B45309" style="background:#B45309" aria-label="Amber"></button>
+        <button class="swatch" type="button" data-colour="#475569" style="background:#475569" aria-label="Slate"></button>
+      </div>
+    </section>
+    <button class="btn btn-primary" type="submit">Create class <svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+  </form>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-    (() => {
-        const branch = document.getElementById('{{ form.branch.id_for_label }}');
-        const year = document.getElementById('{{ form.batch_year.id_for_label }}');
-        const section = document.getElementById('{{ form.section.id_for_label }}');
-        const preview = document.getElementById('roll-preview'); const explainer = document.getElementById('roll-explainer');
-        const prefixes = { AIE: 'AV.SC.U4', CSE: 'AV.SC.U4', CCE: 'AV.EN.U4', AIDS: 'AV.EN.U4', QC: 'AV.EN.U4', ECE: 'AV.EN.U4', CUSTOM: 'AV.U4' };
-        function refresh() { const b = branch.value || 'CSE', y = (year.value || '2025').slice(-2), s = section.value || 'A', pos = Math.max(0, s.charCodeAt(0) - 65); preview.textContent = (prefixes[b] || 'AV.U4') + b + y + pos + '01'; explainer.textContent = b + ' · 20' + y + ' batch · Section ' + s + ' · Student 01'; }
-        [branch, year, section].forEach(x => x.addEventListener('input', refresh)); refresh();
-        const colour = document.getElementById('{{ form.colour.id_for_label }}'); document.querySelectorAll('.swatch').forEach(s => s.addEventListener('click', () => { document.querySelectorAll('.swatch').forEach(i => i.classList.remove('active')); s.classList.add('active'); colour.value = s.dataset.colour; }));
-    })();
+(() => {
+  const colour = document.getElementById('{{ form.colour.id_for_label }}');
+  document.querySelectorAll('.swatch').forEach(s => s.addEventListener('click', () => {
+    document.querySelectorAll('.swatch').forEach(i => i.classList.remove('active'));
+    s.classList.add('active');
+    colour.value = s.dataset.colour;
+  }));
+})();
 </script>
 {% endblock %}

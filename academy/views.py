@@ -1,9 +1,8 @@
-import base64
 import json
 import secrets
 import urllib.parse
 import urllib.request
-from datetime import datetime, date
+from datetime import datetime
 from io import BytesIO
 
 from django.conf import settings
@@ -11,10 +10,9 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Q
-from django.http import Http404, HttpResponse, JsonResponse
+from django.db.models import Count
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from openpyxl import Workbook
@@ -24,65 +22,9 @@ from .forms import CourseClassForm, StudentForm, TeachingPlanForm
 from .models import AttendanceRecord, AttendanceSession, CourseClass, Student, TeachingPlan
 
 
-DEMO_NAMES = [
-    "Ethan", "Ava", "Mia", "Deshawn", "Priya", "Olivia", "Grace", "Henry",
-    "Zoe", "Sofia", "Jaylen", "Owen", "Emma", "Marcus", "Caleb", "Nora",
-    "Lucas", "Eli", "Isabella", "Maya", "Rishabh", "Liam", "Ananya", "Arjun",
-    "Meera", "Karthik", "Saanvi", "Aarav", "Diya", "Vihaan", "Ishita", "Aditya",
-    "Nitya", "Rahul", "Sneha", "Varun", "Kavya", "Siddharth", "Nandini", "Harsha",
-]
-
-
-def _demo_user(request):
-    """Allow the prototype to be used immediately, without fake credentials."""
-    if request.user.is_authenticated:
-        return request.user
-    User = get_user_model()
-    user, _ = User.objects.get_or_create(
-        username="demo.teacher", defaults={"email": "teacher@example.com", "first_name": "Demo", "last_name": "Teacher"}
-    )
-    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    _seed_demo(user)
-    return user
-
-
-def _seed_demo(teacher):
-    """A useful empty-state alternative: sample records show the mobile flow in the preview."""
-    if CourseClass.objects.filter(teacher=teacher).exists():
-        return
-    cse = CourseClass.objects.create(
-        teacher=teacher, name="Data Structures · CSE A", branch="CSE", batch_year=2025,
-        section="A", student_count=40, colour="#7357F6"
-    )
-    aie = CourseClass.objects.create(
-        teacher=teacher, name="Python Lab · AIE B", branch="AIE", batch_year=2025,
-        section="B", student_count=28, colour="#0D9E8B"
-    )
-    students = [Student(course_class=cse, name=name, roll_number=cse.make_roll_number(i), serial_number=i)
-                for i, name in enumerate(DEMO_NAMES, 1)]
-    students += [Student(course_class=aie, name=f"Student {i}", roll_number=aie.make_roll_number(i), serial_number=i)
-                 for i in range(1, 29)]
-    Student.objects.bulk_create(students)
-    # A few past sessions make the analytics page meaningful on first open.
-    cse_students = list(cse.students.all())
-    for day, slot, present_until in [(date(2026, 10, 6), "Slot 2", 35), (date(2026, 10, 7), "Slot 2", 32), (date(2026, 10, 8), "Slot 2", 38)]:
-        session = AttendanceSession.objects.create(course_class=cse, date=day, slot=slot, topic="Trees & traversal")
-        AttendanceRecord.objects.bulk_create([
-            AttendanceRecord(session=session, student=s, status="P" if s.serial_number <= present_until else "A")
-            for s in cse_students
-        ])
-    TeachingPlan.objects.bulk_create([
-        TeachingPlan(course_class=cse, kind="TEST", title="Unit 2 quiz", due_date=date(2026, 10, 14)),
-        TeachingPlan(course_class=cse, kind="ASSIGNMENT", title="Stack implementation", due_date=date(2026, 10, 17)),
-        TeachingPlan(course_class=aie, kind="TEST", title="Python lab evaluation", due_date=date(2026, 10, 15)),
-    ])
-
-
 def teacher_required(view):
-    def wrapped(request, *args, **kwargs):
-        _demo_user(request)
-        return view(request, *args, **kwargs)
-    return wrapped
+    """Require a verified teacher account for all class data."""
+    return login_required(view)
 
 
 def _owned_class(request, class_id):
@@ -338,8 +280,8 @@ def login_page(request):
 
 def google_start(request):
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_REDIRECT_URI:
-        messages.info(request, "Google OAuth keys are not configured in this preview. A secure demo workspace has been opened instead.")
-        return redirect("dashboard")
+        messages.info(request, "Google Sign-In is not configured yet. Ask the administrator to add the Google OAuth credentials.")
+        return redirect("login")
     state = secrets.token_urlsafe(24)
     request.session["google_oauth_state"] = state
     parameters = urllib.parse.urlencode({

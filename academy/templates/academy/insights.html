@@ -1,57 +1,15 @@
 {% extends 'academy/base.html' %}
 {% block title %}Insights · {{ course_class.name }}{% endblock %}
 {% block content %}
-<div class="page-heading">
-    <div>
-        <p class="eyebrow">Class analysis</p>
-        <h1>{{ course_class.name }}</h1>
-        <p>Attendance health for {{ course_class.branch }} · Section {{ course_class.section }}.</p>
-    </div>
-    <div style="display:flex;gap:8px"><a href="{% url 'export_xlsx' course_class.id %}" class="btn btn-plain">Download
-            Excel</a><a href="{% url 'class_detail' course_class.id %}" class="btn btn-primary">Take attendance</a>
-    </div>
-</div>
+<div class="page-heading"><div><p class="eyebrow">Class analysis</p><h1>{{ course_class.name }}</h1><p>Attendance health for {{ course_class.branch }} · Section {{ course_class.section }}.</p></div><div style="display:flex;gap:8px"><a href="{% url 'export_xlsx' course_class.id %}" class="btn btn-plain">Download Excel</a><a href="{% url 'class_detail' course_class.id %}" class="btn btn-primary">Take attendance</a></div></div>
 <div class="report-grid">
-    <article class="panel big-stat"><strong>{{ stats.sessions }}</strong><span>Classes taken</span></article>
-    <article class="panel big-stat"><strong>{{ stats.overall_rate }}%</strong><span>Overall attendance</span></article>
-    <article class="panel big-stat"><strong>{{ stats.at_risk|length }}</strong><span>Students below 75%</span></article>
+  <article class="panel big-stat"><strong>{{ stats.sessions }}</strong><span>Classes taken</span></article>
+  <article class="panel big-stat"><strong>{{ stats.overall_rate }}%</strong><span>Overall attendance</span></article>
+  <article class="panel big-stat"><strong>{{ stats.at_risk|length }}</strong><span>Students below 75%</span></article>
 </div>
 <div class="insights-grid">
-    <section class="panel">
-        <div class="panel-heading">
-            <div>
-                <h2>Recent attendance trend</h2>
-                <p>Percentage present in your latest saved registers.</p>
-            </div>
-        </div>
-        <div class="chart">{% for point in trend %}<div class="bar" title="{{ point.label }}: {{ point.rate }}%"><istyle="height:{{ point.rate }}%"></i><span>{{ point.label }}</span></div>{% empty %}<p
-                class="muted">Save your first register to begin seeing trends.</p>{% endfor %}</div>
-    </section>
-    <section class="panel">
-        <div class="panel-heading">
-            <div>
-                <h2>Needs attention</h2>
-                <p>Below 75% attendance.</p>
-            </div>
-        </div>
-        <div class="risk-list">{% for row in stats.at_risk|slice:':6' %}<div class="risk-row"><span class="initial">{{
-                    row.student.name|slice:':1'|upper }}</span>
-                <div><strong>{{ row.student.name }}</strong><span>{{ row.student.roll_number }}</span></div><em>{{
-                    row.rate }}%</em>
-            </div>{% empty %}<p class="muted">Wonderful — no student is below the threshold.</p>{% endfor %}</div>
-    </section>
+  <section class="panel"><div class="panel-heading"><div><h2>Recent attendance trend</h2><p>Percentage present in your latest saved registers.</p></div></div><div class="chart">{% for point in trend %}<div class="bar" title="{{ point.label }}: {{ point.rate }}%"><i style="height:{{ point.rate }}%"></i><span>{{ point.label }}</span></div>{% empty %}<p class="muted">Save your first register to begin seeing trends.</p>{% endfor %}</div></section>
+  <section class="panel"><div class="panel-heading"><div><h2>Needs attention</h2><p>Below 75% attendance.</p></div></div><div class="risk-list">{% for row in stats.at_risk|slice:':6' %}<div class="risk-row"><span class="initial">{{ row.student.name|slice:':1'|upper }}</span><div><strong>{{ row.student.name }}</strong><span>{{ row.student.roll_number }}</span></div><em>{{ row.rate }}%</em></div>{% empty %}<p class="muted">Wonderful — no student is below the threshold.</p>{% endfor %}</div></section>
 </div>
-<section class="panel" style="margin-top:17px">
-    <div class="panel-heading">
-        <div>
-            <h2>Student attendance</h2>
-            <p>Use this to follow up before a student falls below the required percentage.</p>
-        </div>
-    </div>
-    <div class="roster" style="max-height:none">{% for row in stats.student_rows %}<div class="roster-row"><span
-                class="roster-num">{{ row.student.serial_number }}</span>
-            <div><strong>{{ row.student.name }}</strong><span>{{ row.student.roll_number }} · {{ row.attended }} of {{
-                    stats.sessions }} classes</span></div><strongstyle="color:{% if row.rate < 75 %}#d95752{% else %}#078664{% endif %};font-size:13px">{{ row.rate}}%</strong>
-        </div>{% endfor %}</div>
-</section>
+<section class="panel" style="margin-top:17px"><div class="panel-heading"><div><h2>Student attendance</h2><p>Use this to follow up before a student falls below the required percentage.</p></div></div><div class="roster" style="max-height:none">{% for row in stats.student_rows %}<div class="roster-row"><span class="roster-num">{{ row.student.serial_number }}</span><div><strong>{{ row.student.name }}</strong><span>{{ row.student.roll_number }} · {{ row.attended }} of {{ stats.sessions }} classes</span></div><strong style="color:{% if row.rate < 75 %}#d95752{% else %}#078664{% endif %};font-size:13px">{{ row.rate }}%</strong></div>{% endfor %}</div></section>
 {% endblock %}

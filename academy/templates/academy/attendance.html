@@ -17,7 +17,7 @@
     <div class="attendance-info"><p><b>Tap a roll number</b> to mark present. Tap again for late, then absent.</p><div class="legend"><span class="present">Present</span><span class="late">Late</span><span>Not marked</span></div></div>
     <div class="student-grid" id="student-grid">
       {% for row in student_rows %}
-      <button class="student-tile {% if row.status == 'P' %}is-present{% elif row.status == 'A' %}is-absent{% elif row.status == 'L' %}is-late{% endif %}" type="button" data-student="{{ row.student.id }}" data-status="{{ row.status }}" title="{{ row.student.roll_number }} · {{ row.student.name }}">
+      <button class="student-tile {% if row.status == 'P' %}is-present{% elif row.status == 'A' %}is-absent{% elif row.status == 'L' %}is-late{% endif %}" type="button" data-student="{{ row.student.id }}" data-roll="{{ row.student.serial_number|stringformat:'02d' }}" data-status="{{ row.status }}" title="{{ row.student.roll_number }} · {{ row.student.name }}">
         <span class="mini-avatar"><svg viewBox="0 0 24 24"><path d="M8 20v-7m8 7v-7M7 4h10v9H7zM5 4h14"/><path d="M9 8h6"/></svg></span><span class="tile-mark">{{ row.status }}</span><span class="tile-number">{{ row.student.serial_number|stringformat:'02d' }}</span><span class="tile-name">{{ row.student.name }}</span>
       </button>
       {% empty %}<p class="muted">No active students in this class yet.</p>{% endfor %}
@@ -50,7 +50,26 @@
  function switchRegister(){const p=new URLSearchParams({date:dateInput.value,slot:slotInput.value||'Slot 1'});window.location.search=p.toString();}
  dateInput.addEventListener('change',switchRegister);slotInput.addEventListener('change',switchRegister);
  saveBtn.onclick=async()=>{ const statuses=Object.fromEntries(tiles.map(t=>[t.dataset.student,t.dataset.status==='U'?'A':t.dataset.status]));saveBtn.disabled=true;notice.textContent='Saving…';try{const r=await fetch('{% url "save_attendance" course_class.id %}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({date:dateInput.value,slot:slotInput.value||'Slot 1',topic:topic.value,statuses})});const data=await r.json();if(!r.ok)throw Error(data.message);notice.textContent='✓ Saved securely';notice.style.color='#078664';}catch(e){notice.textContent=e.message||'Could not save. Try again.';notice.style.color='#d95752';}finally{saveBtn.disabled=false;}};
- document.getElementById('whatsapp-share').onclick=(e)=>{e.preventDefault();const p=tiles.filter(t=>['P','L','E'].includes(t.dataset.status)).length;const message=`Attendance update — {{ course_class.name|escapejs }}%0A${dateInput.value} · ${slotInput.value||'Slot 1'}%0APresent: ${p}/{{ students|length }}%0ARecorded with Shikshak Mitra`;window.open('https://wa.me/?text='+message,'_blank','noopener');};
+ document.getElementById('whatsapp-share').onclick=(e)=>{
+   e.preventDefault();
+   const statusTiles = tiles.map(t => ({roll:t.dataset.roll, status:t.dataset.status === 'U' ? 'A' : t.dataset.status}));
+   const presentRolls = statusTiles.filter(t => t.status === 'P').map(t => t.roll);
+   const lateRolls = statusTiles.filter(t => t.status === 'L').map(t => t.roll);
+   const excusedRolls = statusTiles.filter(t => t.status === 'E').map(t => t.roll);
+   const absentRolls = statusTiles.filter(t => t.status === 'A').map(t => t.roll);
+   const attended = presentRolls.length + lateRolls.length + excusedRolls.length;
+   const lines = [
+     `Attendance update — {{ course_class.name|escapejs }}`,
+     `${dateInput.value} · ${slotInput.value || 'Slot 1'}`,
+     `Present: ${attended}/{{ students|length }}`,
+     presentRolls.length ? `Present roll nos.: ${presentRolls.join(', ')}` : '',
+     lateRolls.length ? `Late roll nos.: ${lateRolls.join(', ')}` : '',
+     excusedRolls.length ? `Excused roll nos.: ${excusedRolls.join(', ')}` : '',
+     absentRolls.length ? `Absent roll nos.: ${absentRolls.join(', ')}` : 'Absent roll nos.: None',
+     'Recorded with Shikshak Mitra'
+   ].filter(Boolean);
+   window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank', 'noopener');
+ };
  document.querySelectorAll('.edit-name').forEach(button=>button.onclick=()=>{const name=prompt('Student name',button.dataset.name);if(name&&name.trim()){const f=document.getElementById('edit-student-form');f.action='{% url "class_detail" course_class.id %}students/'+button.dataset.studentId+'/';document.getElementById('edited-name').value=name.trim();f.submit();}});
 })();
 </script>

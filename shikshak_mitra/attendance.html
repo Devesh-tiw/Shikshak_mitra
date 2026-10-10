@@ -1,0 +1,141 @@
+{% extends 'academy/base.html' %}
+{% block title %}{{ course_class.name }} · Shikshak Mitra{% endblock %}
+{% block content %}
+<div class="attendance-header">
+    <div><a href="{% url 'class_list' %}" class="backlink"><svg viewBox="0 0 24 24">
+                <path d="m15 18-6-6 6-6" />
+            </svg> All classes</a>
+        <h1>{{ course_class.name }}</h1>
+        <p>{{ course_class.branch }} · {{ course_class.batch_year }} batch · Section {{ course_class.section }} · {{
+            students|length }} students</p>
+    </div>
+    <a href="{% url 'insights' course_class.id %}" class="btn btn-secondary">View insights</a>
+</div>
+
+<div class="attendance-layout">
+    <section class="panel attendance-panel">
+        <div class="attendance-controls">
+            <label class="compact-field" title="Attendance date"><span>▣</span><input id="attendance-date" type="date"
+                    value="{{ selected_date|date:'Y-m-d' }}"></label>
+            <label class="compact-field" title="Slot"><span>◷</span><input id="attendance-slot" type="text"
+                    value="{{ selected_slot }}" maxlength="60"></label>
+            <span class="mark-summary" id="mark-summary"><b id="present-count">0</b> / {{ students|length }}
+                present</span>
+            <div class="attendance-tools"><button class="btn btn-secondary btn-small" type="button" id="all-present">All
+                    present</button><button class="btn btn-plain btn-small" type="button"
+                    id="clear-marks">Clear</button></div>
+        </div>
+        <div class="attendance-info">
+            <p><b>Tap a roll number</b> to mark present. Tap again for late, then absent.</p>
+            <div class="legend"><span class="present">Present</span><span class="late">Late</span><span>Not
+                    marked</span></div>
+        </div>
+        <div class="student-grid" id="student-grid">
+            {% for row in student_rows %}
+            <button
+                class="student-tile {% if row.status == 'P' %}is-present{% elif row.status == 'A' %}is-absent{% elif row.status == 'L' %}is-late{% endif %}"
+                type="button" data-student="{{ row.student.id }}" data-status="{{ row.status }}"
+                title="{{ row.student.roll_number }} · {{ row.student.name }}">
+                <span class="mini-avatar"><svg viewBox="0 0 24 24">
+                        <path d="M8 20v-7m8 7v-7M7 4h10v9H7zM5 4h14" />
+                        <path d="M9 8h6" />
+                    </svg></span><span class="tile-mark">{{ row.status }}</span><span class="tile-number">{{
+                    row.student.serial_number|stringformat:'02d' }}</span><span class="tile-name">{{ row.student.name
+                    }}</span>
+            </button>
+            {% empty %}<p class="muted">No active students in this class yet.</p>{% endfor %}
+        </div>
+        <div style="display:flex;gap:9px;align-items:center;margin-top:17px;flex-wrap:wrap"><input id="attendance-topic"
+                class="topic-input" type="text" placeholder="Topic for this class (optional)"
+                value="{{ session.topic|default:'' }}"><button id="save-attendance" type="button"
+                class="btn btn-primary">Save attendance <svg viewBox="0 0 24 24">
+                    <path d="M5 12h14m-6-6 6 6-6 6" />
+                </svg></button><span id="save-status" class="muted"></span></div>
+    </section>
+
+    <aside class="quick-side">
+        <section class="panel">
+            <h3>Today’s register</h3>
+            <p>Save first, then share the summary or download the formatted Excel register.</p>
+            <div class="action-list"><a id="whatsapp-share" href="#"><span>Share on WhatsApp</span> ↗</a><a
+                    href="{% url 'export_xlsx' course_class.id %}"><span>Download Excel</span> ↓</a></div>
+        </section>
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
+                    <h3>Class roster</h3>
+                    <p>Edit names as you receive the list.</p>
+                </div><button class="text-link" onclick="document.getElementById('student-modal').showModal()">+
+                    Add</button>
+            </div>
+            <div class="roster">
+                {% for student in students %}<div class="roster-row"><span class="roster-num">{{ student.serial_number
+                        }}</span>
+                    <div><strong>{{ student.name }}</strong><span>{{ student.roll_number }}</span></div><button
+                        class="edit-name" type="button" data-student-id="{{ student.id }}"
+                        data-name="{{ student.name|escapejs }}">Edit</button>
+                </div>{% endfor %}
+            </div>
+        </section>
+    </aside>
+</div>
+
+<dialog class="modal" id="student-modal">
+    <div class="modal-inner"><button class="close-modal" type="button"
+            onclick="this.closest('dialog').close()">×</button>
+        <h2>Add a student</h2>
+        <p class="muted">A roll number will be assigned automatically.</p>
+        <form method="post" action="{% url 'add_student' course_class.id %}">{% csrf_token %}<div class="field"><label
+                    for="{{ student_form.name.id_for_label }}">Student name</label>{{ student_form.name }}</div>
+            <div class="field" style="margin-top:12px"><label for="{{ student_form.email.id_for_label }}">Email
+                    (optional)</label>{{ student_form.email }}</div>
+            <div class="modal-actions"><button type="button" class="btn btn-plain"
+                    onclick="this.closest('dialog').close()">Cancel</button><button class="btn btn-primary">Add
+                    student</button></div>
+        </form>
+    </div>
+</dialog>
+<form id="edit-student-form" method="post" hidden>{% csrf_token %}<input name="name" id="edited-name"></form>
+{% endblock %}
+{% block extra_head %}<style>
+    .topic-input {
+        font: inherit;
+        border: 1px solid #ded9eb;
+        border-radius: 10px;
+        min-height: 43px;
+        padding: 0 11px;
+        outline: 0;
+        flex: 1;
+        min-width: 190px
+    }
+
+    .topic-input:focus {
+        border-color: #7157f7;
+        box-shadow: 0 0 0 3px #eeeaff
+    }
+
+    @media(max-width:520px) {
+        .topic-input {
+            width: 100%;
+            flex-basis: 100%
+        }
+    }
+</style>{% endblock %}
+{% block scripts %}
+<script>
+    (() => {
+        const tiles = [...document.querySelectorAll('.student-tile')], dateInput = document.getElementById('attendance-date'), slotInput = document.getElementById('attendance-slot'), topic = document.getElementById('attendance-topic'), count = document.getElementById('present-count'), saveBtn = document.getElementById('save-attendance'), notice = document.getElementById('save-status'), csrf = document.querySelector('#edit-student-form [name=csrfmiddlewaretoken]').value;
+        const statuses = { U: { next: 'P', label: '' }, P: { next: 'L', label: 'P' }, L: { next: 'A', label: 'L' }, A: { next: 'P', label: 'A' } };
+        function render(tile) { const s = tile.dataset.status; tile.classList.toggle('is-present', s === 'P'); tile.classList.toggle('is-late', s === 'L'); tile.classList.toggle('is-absent', s === 'A'); tile.querySelector('.tile-mark').textContent = s === 'U' ? '' : s; }
+        function recount() { count.textContent = tiles.filter(t => ['P', 'L', 'E'].includes(t.dataset.status)).length; }
+        tiles.forEach(tile => { render(tile); tile.addEventListener('click', () => { tile.dataset.status = statuses[tile.dataset.status].next; render(tile); recount(); }); }); recount();
+        document.getElementById('all-present').onclick = () => { tiles.forEach(t => { t.dataset.status = 'P'; render(t) }); recount() };
+        document.getElementById('clear-marks').onclick = () => { tiles.forEach(t => { t.dataset.status = 'U'; render(t) }); recount() };
+        function switchRegister() { const p = new URLSearchParams({ date: dateInput.value, slot: slotInput.value || 'Slot 1' }); window.location.search = p.toString(); }
+        dateInput.addEventListener('change', switchRegister); slotInput.addEventListener('change', switchRegister);
+        saveBtn.onclick = async () => { const statuses = Object.fromEntries(tiles.map(t => [t.dataset.student, t.dataset.status === 'U' ? 'A' : t.dataset.status])); saveBtn.disabled = true; notice.textContent = 'Saving…'; try { const r = await fetch('{% url "save_attendance" course_class.id %}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf }, body: JSON.stringify({ date: dateInput.value, slot: slotInput.value || 'Slot 1', topic: topic.value, statuses }) }); const data = await r.json(); if (!r.ok) throw Error(data.message); notice.textContent = '✓ Saved securely'; notice.style.color = '#078664'; } catch (e) { notice.textContent = e.message || 'Could not save. Try again.'; notice.style.color = '#d95752'; } finally { saveBtn.disabled = false; } };
+        document.getElementById('whatsapp-share').onclick = (e) => { e.preventDefault(); const p = tiles.filter(t => ['P', 'L', 'E'].includes(t.dataset.status)).length; const message = `Attendance update — {{ course_class.name|escapejs }}%0A${dateInput.value} · ${slotInput.value || 'Slot 1'}%0APresent: ${p}/{{ students|length }}%0ARecorded with Shikshak Mitra`; window.open('https://wa.me/?text=' + message, '_blank', 'noopener'); };
+        document.querySelectorAll('.edit-name').forEach(button => button.onclick = () => { const name = prompt('Student name', button.dataset.name); if (name && name.trim()) { const f = document.getElementById('edit-student-form'); f.action = '{% url "class_detail" course_class.id %}students/' + button.dataset.studentId + '/'; document.getElementById('edited-name').value = name.trim(); f.submit(); } });
+    })();
+</script>
+{% endblock %}

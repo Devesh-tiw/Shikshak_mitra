@@ -1,0 +1,96 @@
+{% extends 'academy/base.html' %}
+{% block title %}Dashboard · Shikshak Mitra{% endblock %}
+{% block content %}
+<section class="hero" id="guide">
+    <div class="hero-copy">
+        <p class="eyebrow">Good afternoon, {{ request.user.first_name|default:'Teacher' }}!</p>
+        <h1>Attendance that keeps up with your class.</h1>
+        <p>Take attendance in a few taps, keep every register organised, and share a clean update on WhatsApp when the
+            bell rings.</p>
+        {% if classes %}
+        <a class="btn btn-primary" href="{% url 'class_detail' classes.0.id %}">Take attendance <svg
+                viewBox="0 0 24 24">
+                <path d="M5 12h14m-6-6 6 6-6 6" />
+            </svg></a>
+        {% endif %}
+        <a class="btn btn-secondary" href="{% url 'create_class' %}">+ Add a class</a>
+    </div>
+</section>
+
+<div class="stats-grid">
+    <article class="stat-card"><span class="stat-label">Your active classes <span>◒</span></span><strong
+            class="stat-value">{{ classes|length }}</strong><span class="stat-note">Ready to take attendance</span>
+    </article>
+    <article class="stat-card"><span class="stat-label">Students on roster <span>♙</span></span><strong
+            class="stat-value">{{ total_students }}</strong><span class="stat-note">Across all sections</span></article>
+    <article class="stat-card"><span class="stat-label">Classes today <span>◫</span></span><strong class="stat-value">{{
+            sessions_today }}</strong><span class="stat-note">Attendance saved today</span></article>
+    <article class="stat-card"><span class="stat-label">Teaching plan <span>◌</span></span><strong class="stat-value">{{
+            plans|length }}</strong><span class="stat-note">Upcoming items</span></article>
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Your classes</h2>
+                <p>Tap a class to start today’s register.</p>
+            </div><a href="{% url 'class_list' %}" class="text-link">View all</a>
+        </div>
+        {% for item in class_summaries %}
+        <a href="{% url 'class_detail' item.course_class.id %}" class="class-row"><span class="class-symbol"style="background:{{ item.course_class.colour }}">{{ item.course_class.branch}}</span>
+            <div>
+                <h3>{{ item.course_class.name }}</h3>
+                <p>{{ item.stats.students }} students · {{ item.course_class.batch_year }} batch · Section {{
+                    item.course_class.section }}</p>
+            </div>
+            <div class="row-meta"><strong>{{ item.stats.overall_rate }}%</strong> average<div class="progress"><istyle="width:{{ item.stats.overall_rate }}%;background:{{ item.course_class.colour }}"></i>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <p class="muted">Your class list is empty. Start by creating your first class.</p>
+        {% endfor %}
+    </section>
+
+    <aside class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Teaching plan</h2>
+                <p>Tests, assignments & reminders.</p>
+            </div><button class="text-link" onclick="document.getElementById('plan-modal').showModal()">+ Add</button>
+        </div>
+        <div class="plan-list">
+            {% for plan in plans %}
+            <div class="plan-item"><span class="plan-type">{{ plan.get_kind_display|upper }}</span>
+                <div class="plan-copy"><strong>{{ plan.title }}</strong><span>{{ plan.course_class.branch }} {{
+                        plan.course_class.section }} · {{ plan.due_date|date:'D, d M' }}</span></div>
+                <form method="post" action="{% url 'complete_plan' plan.id %}">{% csrf_token %}<button
+                        class="round-check" title="Mark complete"></button></form>
+            </div>
+            {% empty %}<p class="muted">Nothing planned yet. Add a test, assignment, or reminder.</p>{% endfor %}
+        </div>
+    </aside>
+</div>
+
+<dialog class="modal" id="plan-modal">
+    <div class="modal-inner"><button class="close-modal" type="button"
+            onclick="this.closest('dialog').close()">×</button>
+        <h2>Add to teaching plan</h2>
+        <p class="muted">Keep your tests and assignments beside the register.</p>
+        <form method="post" action="{% url 'add_plan' %}">{% csrf_token %}
+            <div class="field"><label for="{{ plan_form.course_class.id_for_label }}">Class</label>{{
+                plan_form.course_class }}</div>
+            <div class="field-grid" style="margin-top:12px">
+                <div class="field"><label>Type</label>{{ plan_form.kind }}</div>
+                <div class="field"><label>Due date</label>{{ plan_form.due_date }}</div>
+                <div class="field full"><label>Title</label>{{ plan_form.title }}</div>
+                <div class="field full"><label>Note</label>{{ plan_form.details }}</div>
+            </div>
+            <div class="modal-actions"><button type="button" class="btn btn-plain"
+                    onclick="this.closest('dialog').close()">Cancel</button><button class="btn btn-primary">Add
+                    plan</button></div>
+        </form>
+    </div>
+</dialog>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f8f7ff">
+    <title>{% block title %}Shikshak Mitra{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'academy/styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <div class="shell">
+        <header class="topbar">
+            <a class="brand" href="{% url 'dashboard' %}" aria-label="Shikshak Mitra home">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4.5 4.5h8a3 3 0 0 1 3 3v12h-8a3 3 0 0 0-3 3v-15a3 3 0 0 1 3-3Z" />
+                        <path d="M19.5 4.5h-7a3 3 0 0 0-3 3v12h7a3 3 0 0 1 3 3v-15a3 3 0 0 0-3-3Z" />
+                    </svg>
+                </span>
+                <span><b>Shikshak</b> Mitra<small>Attendance, made simple</small></span>
+            </a>
+            <div class="top-actions">
+                <a class="icon-button hide-mobile" title="Help" href="#guide">?</a>
+                <button class="avatar" type="button" aria-label="Teacher profile">{{
+                    request.user.first_name|default:"T"|slice:":1"|upper }}</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            {% if messages %}
+            <div class="messages" aria-live="polite">
+                {% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+
+        <nav class="mobile-nav" aria-label="Primary navigation">
+            <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <svg viewBox="0 0 24 24">
+                    <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10Z" />
+                </svg><span>Home</span>
+            </a>
+            <a href="{% url 'class_list' %}"
+                class="{% if request.resolver_match.url_name == 'class_list' %}active{% endif %}">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 4h16v16H4zM8 2v4M16 2v4M7 10h10M7 14h7" />
+                </svg><span>Classes</span>
+            </a>
+            <a class="nav-add" href="{% url 'create_class' %}" aria-label="Add a class"><svg viewBox="0 0 24 24">
+                    <path d="M12 5v14M5 12h14" />
+                </svg></a>
+            <a href="{% url 'create_class' %}"
+                class="{% if request.resolver_match.url_name == 'create_class' %}active{% endif %}">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 8v8M8 12h8" />
+                </svg><span>New class</span>
+            </a>
+            <a href="#guide">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM9.5 9a2.5 2.5 0 1 1 4.1 1.9c-.98.77-1.6 1.28-1.6 2.6M12 17h.01" />
+                </svg><span>Help</span>
+            </a>
+        </nav>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

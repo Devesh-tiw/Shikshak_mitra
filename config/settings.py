@@ -5,7 +5,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-change-me-before-deploying")
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
-ALLOWED_HOSTS = ["*"]  # Required for the Arena preview; restrict this in production.
+ALLOWED_HOSTS = ["*"]  
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -41,8 +41,6 @@ TEMPLATES = [{
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-# SQLite is a genuine SQL database for the single-teacher / demo deployment.
-# Set DATABASE_URL and install psycopg[binary] for PostgreSQL in production.
 DATABASES = {"default": {
     "ENGINE": "django.db.backends.sqlite3",
     "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),

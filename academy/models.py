@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-
 class CourseClass(models.Model):
     """A class/section owned by one teacher."""
 
@@ -116,8 +115,8 @@ class AttendanceRecord(models.Model):
 
 class TeachingPlan(models.Model):
     class Kind(models.TextChoices):
-        TEST = "TEST", "Test"
-        ASSIGNMENT = "ASSIGNMENT", "Assignment"
+        TEST = "TEST", "Test", "test"
+        ASSIGNMENT = "ASSIGNMENT", "Assignment", "assignment"
         NOTE = "NOTE", "Reminder"
 
     course_class = models.ForeignKey(CourseClass, on_delete=models.CASCADE, related_name="plans")
